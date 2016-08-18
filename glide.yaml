@@ -1,4 +1,4 @@
-package: github.com/TrilliumIT/docker-zfs-plugin/zfs
+package: github.com/TrilliumIT/docker-zfs-plugin
 import:
 - package: github.com/docker/go-plugins-helpers
   subpackages:
