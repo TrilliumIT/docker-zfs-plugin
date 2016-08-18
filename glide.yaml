@@ -1,0 +1,5 @@
+package: github.com/TrilliumIT/docker-zfs-plugin/zfs
+import:
+- package: github.com/docker/go-plugins-helpers
+  subpackages:
+  - volume

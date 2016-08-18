@@ -1,0 +1,39 @@
+hash: 7a59c3f7d8983f34c3f8f7dcef037ee48220df11a0f9b2d211df8856972143d7
+updated: 2016-08-18T16:25:15.75737776-04:00
+imports:
+- name: github.com/coreos/go-systemd
+  version: 5c49e4850c879a0ddc061e8f4adcf307de8a8bc2
+  subpackages:
+  - activation
+  - util
+- name: github.com/coreos/pkg
+  version: 3ac0863d7acf3bc44daf49afef8919af12f704ef
+  subpackages:
+  - dlopen
+- name: github.com/docker/go-connections
+  version: 0bad1a3951398f88ef4dd75fdb42af374430be89
+  subpackages:
+  - sockets
+- name: github.com/docker/go-plugins-helpers
+  version: f3a3876798ee4f63bee3e7ee8911a2c27e7710b9
+  subpackages:
+  - volume
+  - sdk
+- name: github.com/Microsoft/go-winio
+  version: ce2922f643c8fd76b46cadc7f404a06282678b34
+- name: github.com/opencontainers/runc
+  version: 6df383c2f881fbdeb85060fd27d8bf61afedacd9
+  subpackages:
+  - libcontainer/user
+- name: github.com/Sirupsen/logrus
+  version: 08a8a7c27e3d058a8989316a850daad1c10bf4ab
+- name: golang.org/x/net
+  version: 07b51741c1d6423d4a6abab1c49940ec09cb1aaf
+  subpackages:
+  - proxy
+- name: golang.org/x/sys
+  version: a646d33e2ee3172a661fc09bca23bb4889a41bc8
+  subpackages:
+  - windows
+  - unix
+testImports: []
