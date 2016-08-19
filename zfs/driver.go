@@ -37,8 +37,11 @@ func (zd *ZfsDriver) Create(req volume.Request) volume.Response {
 	}
 
 	_, err := zfs.CreateDataset(dsName, make(map[string]string))
+	if err != nil {
+		return volume.Response{Err: err.Error()}
+	}
 
-	return volume.Response{Err: err.Error()}
+	return volume.Response{Err: ""}
 }
 
 func (zd *ZfsDriver) List(req volume.Request) volume.Response {
