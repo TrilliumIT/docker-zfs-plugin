@@ -10,21 +10,21 @@ import (
 )
 
 const (
-	version = 0.1
+	version = "0.1"
 )
 
 func main() {
 
-	var flagBaseDir = cli.StringFlag{
-		Name:  "base-dir",
-		Value: "/var/lib/docker-volumes",
-		Usage: "Base directory where the driver root will be created.",
+	var flagDataset = cli.StringFlag{
+		Name:  "dataset-name",
+		Value: "",
+		Usage: "Name of the ZFS dataset to be used. It will be created if it doesn't exist.",
 	}
 
-	var flagRootDir = cli.StringFlag{
-		Name:  "root-dir",
-		Value: "zfs",
-		Usage: "Relative name of the root directory for the driver. All volumes will be created in $BaseDir/$RootDir.",
+	var flagMountpoint = cli.StringFlag{
+		Name:  "mount-point",
+		Value: "/var/lib/docker-volumes/zfs",
+		Usage: "Mount point of your dataset. It will be created if it doesn't exist.",
 	}
 
 	app := cli.NewApp()
@@ -32,8 +32,8 @@ func main() {
 	app.Usage = "Docker ZFS Plugin"
 	app.Version = version
 	app.Flags = []cli.Flag{
-		flagBaseDir,
-		flagRootDir,
+		flagDataset,
+		flagMountpoint,
 	}
 	app.Action = Run
 	err := app.Run(os.Args)
@@ -43,14 +43,24 @@ func main() {
 }
 
 func Run(ctx *cli.Context) {
-	_, err := FileInfo.Stat(ctx.String("base-dir"))
+	if ctx.String("dataset-name") == "" {
+		panic("ZFS Dataset name is a required field.")
+	}
+
+	_, err := os.Stat(ctx.String("mount-point"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Error("Base directory must exist when launching docker-zfs-plugin.")
-			return err
+			err2 := os.MkdirAll(ctx.String("mount-point"), 0755)
+			if err2 != nil {
+				fmt.Errorf("Error creating mountpoint directory.")
+				panic(err)
+			}
+		} else {
+			panic(err)
 		}
 	}
-	d, err := vxlan.NewDriver(ctx.String("base-dir") + os.PathSeparator + ctx.String("root-dir"))
+
+	d, err := zfsdriver.NewZfsDriver(ctx.String("dataset-name"), ctx.String("mount-point"))
 	if err != nil {
 		panic(err)
 	}

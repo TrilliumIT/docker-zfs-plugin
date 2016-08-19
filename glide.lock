@@ -1,6 +1,8 @@
 hash: eb6a1d657719fb14a6a64dddc9441fb5f809eb0dd45a528539477fe01fd6af84
-updated: 2016-08-18T16:33:15.784250895-04:00
+updated: 2016-08-19T09:35:55.105974265-04:00
 imports:
+- name: github.com/clinta/go-zfs
+  version: b34f333e811c8fad622cc2436eed46153d36be0c
 - name: github.com/coreos/go-systemd
   version: 5c49e4850c879a0ddc061e8f4adcf307de8a8bc2
   subpackages:
