@@ -1,8 +1,8 @@
-hash: eb6a1d657719fb14a6a64dddc9441fb5f809eb0dd45a528539477fe01fd6af84
-updated: 2016-08-19T09:35:55.105974265-04:00
+hash: 8cd560440ef3ab6ac9d47b7a349dbedd3e494b4737f4b717c3f2b076b052c42c
+updated: 2016-08-19T13:09:07.672820298-04:00
 imports:
 - name: github.com/clinta/go-zfs
-  version: b34f333e811c8fad622cc2436eed46153d36be0c
+  version: d3bf708e0517a644333e87e55c97603cd480df5e
 - name: github.com/coreos/go-systemd
   version: 5c49e4850c879a0ddc061e8f4adcf307de8a8bc2
   subpackages:
@@ -24,7 +24,7 @@ imports:
 - name: github.com/Microsoft/go-winio
   version: ce2922f643c8fd76b46cadc7f404a06282678b34
 - name: github.com/opencontainers/runc
-  version: 6df383c2f881fbdeb85060fd27d8bf61afedacd9
+  version: 84c344d260cdcc84a5dd4deadbc508eaa91a4fce
   subpackages:
   - libcontainer/user
 - name: github.com/Sirupsen/logrus

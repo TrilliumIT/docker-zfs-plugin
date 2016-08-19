@@ -1,5 +1,7 @@
 package: github.com/TrilliumIT/docker-zfs-plugin
 import:
+- package: github.com/clinta/go-zfs
 - package: github.com/docker/go-plugins-helpers
   subpackages:
   - volume
+- package: github.com/urfave/cli
