@@ -1,7 +1,6 @@
 package zfsdriver
 
 import (
-	"fmt"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -14,17 +13,14 @@ type ZfsDriver struct {
 	rds *zfs.Dataset //root dataset
 }
 
-func NewZfsDriver(ds string, mp string) (*ZfsDriver, error) {
+func NewZfsDriver(ds string) (*ZfsDriver, error) {
 	log.SetLevel(log.DebugLevel)
 	log.Debug("Creating new ZfsDriver.")
 
-	props := make(map[string]string)
-	props["mountpoint"] = mp
-
 	if !zfs.DatasetExists(ds) {
-		rds, err := zfs.CreateDataset(ds, props)
+		rds, err := zfs.CreateDataset(ds, make(map[string]string))
 		if err != nil {
-			fmt.Errorf("Failed to create root dataset.")
+			log.Error("Failed to create root dataset.")
 			return nil, err
 		}
 		return &ZfsDriver{rds: rds}, nil
@@ -35,7 +31,7 @@ func NewZfsDriver(ds string, mp string) (*ZfsDriver, error) {
 }
 
 func (zd *ZfsDriver) Create(req volume.Request) volume.Response {
-	log.WithField("Request", req).Debug("Create")
+
 	dsName := zd.rds.Name + "/" + req.Name
 
 	if zfs.DatasetExists(dsName) {
