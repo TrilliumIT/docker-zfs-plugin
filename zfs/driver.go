@@ -49,7 +49,7 @@ func (zd *ZfsDriver) List(req volume.Request) volume.Response {
 		return volume.Response{Err: err.Error()}
 	}
 
-	for ds := range dsl {
+	for _, ds := range dsl {
 		mp, err := ds.GetMountpoint()
 		if err != nil {
 			return volume.Response{Err: err.Error()}
