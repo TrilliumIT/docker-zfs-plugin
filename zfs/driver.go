@@ -2,7 +2,9 @@ package zfsdriver
 
 import (
 	"fmt"
+	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/clinta/go-zfs"
 	"github.com/docker/go-plugins-helpers/volume"
 )
@@ -13,6 +15,8 @@ type ZfsDriver struct {
 }
 
 func NewZfsDriver(ds string, mp string) (*ZfsDriver, error) {
+	log.SetLevel(log.DebugLevel)
+
 	props := make(map[string]string)
 	props["mountpoint"] = mp
 
@@ -45,26 +49,32 @@ func (zd *ZfsDriver) Create(req volume.Request) volume.Response {
 }
 
 func (zd *ZfsDriver) List(req volume.Request) volume.Response {
+	log.WithField("Requst", req).Debug("List()")
 	var vols []*volume.Volume
 
 	dsl, err := zd.rds.DatasetList()
+	log.WithField("DatasetList", dsl).Debug("List()")
 	if err != nil {
 		return volume.Response{Err: err.Error()}
 	}
 
+	errStr := ""
 	for _, ds := range dsl {
 		mp, err := ds.GetMountpoint()
 		if err != nil {
-			return volume.Response{Err: err.Error()}
+			errStr += "Failed to get mountpoint of dsl: " + ds.Name + " Error: " + err.Error() + "\n"
 		}
-		vols = append(vols, &volume.Volume{Name: ds.Name, Mountpoint: mp})
+
+		vols = append(vols, &volume.Volume{Name: volNameFromDsName(ds.Name), Mountpoint: mp})
 	}
 
-	return volume.Response{Volumes: vols, Err: ""}
+	return volume.Response{Volumes: vols, Err: errStr}
 }
 
 func (zd *ZfsDriver) Get(req volume.Request) volume.Response {
-	ds, err := zfs.GetDataset(req.Name)
+	dsName := zd.rds.Name + "/" + req.Name
+
+	ds, err := zfs.GetDataset(dsName)
 	if err != nil {
 		return volume.Response{Err: err.Error()}
 	}
@@ -74,11 +84,13 @@ func (zd *ZfsDriver) Get(req volume.Request) volume.Response {
 		return volume.Response{Err: err.Error()}
 	}
 
-	return volume.Response{Volume: &volume.Volume{Name: ds.Name, Mountpoint: mp}, Err: ""}
+	return volume.Response{Volume: &volume.Volume{Name: volNameFromDsName(ds.Name), Mountpoint: mp}, Err: ""}
 }
 
 func (zd *ZfsDriver) Remove(req volume.Request) volume.Response {
-	ds, err := zfs.GetDataset(req.Name)
+	dsName := zd.rds.Name + "/" + req.Name
+
+	ds, err := zfs.GetDataset(dsName)
 	if err != nil {
 		return volume.Response{Err: err.Error()}
 	}
@@ -111,4 +123,10 @@ func (zd *ZfsDriver) Unmount(req volume.UnmountRequest) volume.Response {
 
 func (zd *ZfsDriver) Capabilities(req volume.Request) volume.Response {
 	return volume.Response{Capabilities: volume.Capability{Scope: "local"}}
+}
+
+func volNameFromDsName(dsName string) string {
+	volArr := strings.Split(dsName, "/")
+
+	return volArr[len(volArr)-1]
 }
