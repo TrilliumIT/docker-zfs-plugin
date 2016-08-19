@@ -16,6 +16,7 @@ type ZfsDriver struct {
 
 func NewZfsDriver(ds string, mp string) (*ZfsDriver, error) {
 	log.SetLevel(log.DebugLevel)
+	log.Debug("Creating new ZfsDriver.")
 
 	props := make(map[string]string)
 	props["mountpoint"] = mp
@@ -34,6 +35,7 @@ func NewZfsDriver(ds string, mp string) (*ZfsDriver, error) {
 }
 
 func (zd *ZfsDriver) Create(req volume.Request) volume.Response {
+	log.WithField("Request", req).Debug("Create")
 	dsName := zd.rds.Name + "/" + req.Name
 
 	if zfs.DatasetExists(dsName) {
@@ -49,11 +51,10 @@ func (zd *ZfsDriver) Create(req volume.Request) volume.Response {
 }
 
 func (zd *ZfsDriver) List(req volume.Request) volume.Response {
-	log.WithField("Requst", req).Debug("List()")
+	log.WithField("Requst", req).Debug("List")
 	var vols []*volume.Volume
 
 	dsl, err := zd.rds.DatasetList()
-	log.WithField("DatasetList", dsl).Debug("List()")
 	if err != nil {
 		return volume.Response{Err: err.Error()}
 	}
@@ -72,6 +73,7 @@ func (zd *ZfsDriver) List(req volume.Request) volume.Response {
 }
 
 func (zd *ZfsDriver) Get(req volume.Request) volume.Response {
+	log.WithField("Request", req).Debug("Get")
 	dsName := zd.rds.Name + "/" + req.Name
 
 	ds, err := zfs.GetDataset(dsName)
@@ -88,6 +90,7 @@ func (zd *ZfsDriver) Get(req volume.Request) volume.Response {
 }
 
 func (zd *ZfsDriver) Remove(req volume.Request) volume.Response {
+	log.WithField("Request", req).Debug("Remove")
 	dsName := zd.rds.Name + "/" + req.Name
 
 	ds, err := zfs.GetDataset(dsName)
@@ -104,24 +107,29 @@ func (zd *ZfsDriver) Remove(req volume.Request) volume.Response {
 }
 
 func (zd *ZfsDriver) Path(req volume.Request) volume.Response {
-	ds := zd.Get(req)
+	log.WithField("Request", req).Debug("Path")
+	res := zd.Get(req)
 
-	if ds.Err != "" {
-		return ds
+	if res.Err != "" {
+		return res
 	}
 
-	return volume.Response{Mountpoint: ds.Mountpoint, Err: ""}
+	return volume.Response{Mountpoint: res.Volume.Mountpoint, Err: ""}
 }
 
 func (zd *ZfsDriver) Mount(req volume.MountRequest) volume.Response {
+	log.WithField("Request", req).Debug("Mount")
+
 	return zd.Path(volume.Request{Name: req.Name})
 }
 
 func (zd *ZfsDriver) Unmount(req volume.UnmountRequest) volume.Response {
+	log.WithField("Request", req).Debug("Unmount")
 	return volume.Response{Err: ""}
 }
 
 func (zd *ZfsDriver) Capabilities(req volume.Request) volume.Response {
+	log.WithField("Request", req).Debug("Capabilites")
 	return volume.Response{Capabilities: volume.Capability{Scope: "local"}}
 }
 
