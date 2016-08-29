@@ -16,13 +16,20 @@ install:
 - go get -t $($GOPATH/bin/glide novendor)
 
 script:
-- mv $GOPATH/bin/docker-zfs-plugin ./
+  - mv $GOPATH/bin/docker-zfs-plugin ./
+  - md5sum docker-zfs-plugin > md5.txt
+  - sha256sum docker-zfs-plugin > sha256.txt
+  - sha512sum docker-zfs-plugin > sha512.txt
 
 deploy:
   - provider: releases
     skip_cleanup: true
     api_key:
       secure: MXvwv1l5HcqVCvJaPH0NIpYCR+5noi48kk9Cde1pfUXz7j3XNpy0B1Xu0KS/G398hlbpNiwZFc1QQJh/3g9nyV+jZowzWACZPN2Xobh3kgld6wCvvE+McQ5xhiY1PXk/jRbfA8hXjzD/cj8jKzGb4j6T3Ol4jfExWds+EkO5PQFB5ewCrskUoQPNVgrsB6rulT5KGIDZeEuSPgsc+TzEt3YnnNhyEocKuN++jw2byNPKZT+5Z9xfieOryTBUzbDF7yR9j+wFznh6I5Od5q3PimFkxYWVVMdARfmlEOJKgIwX85WYSJDmPNYy73IoGynaXrnKGAkgZees0sPhuHecyfw5MbwSsARdJeDfuWyczdhUT2XjvaDf/ZY/+4krz6yW17pW2Hg7Zj47NvIxuR85aaO6SRpHyb0XOY1AkgTmfA+kDUI52iCi5xqdmqioc9B4HUzBDBAKDatXZO3B2wwGpoRpkFrTbFiXrQYha2bGwcvktTSj6Q/ZrUZzH9ms3R0lBnUm63t9vXPcCdpJ9kAYHUTFIOF6Hq8lFRu0yYOmRjtJBhm98JYVW5aI5vDaQJIhxhgESQHeUXp2TCs16vvKzwRRFbrSjcHPv6IZQICZJTzTQWg5vdqImHxTkRYYItDkshEHwoQM0/tB18am8EtCI4xziDqaC5doA1BHIR7o+eY=
-    file: docker-zfs-plugin
+    file:
+      - docker-zfs-plugin
+      - md5.txt
+      - sha256.txt
+      - sha512.txt
     on:
       tags: true
