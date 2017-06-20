@@ -31,6 +31,7 @@ func NewZfsDriver(ds string) (*ZfsDriver, error) {
 }
 
 func (zd *ZfsDriver) Create(req volume.Request) volume.Response {
+	log.WithField("Request", req).Debug("Create")
 
 	dsName := zd.rds.Name + "/" + req.Name
 
@@ -38,7 +39,7 @@ func (zd *ZfsDriver) Create(req volume.Request) volume.Response {
 		return volume.Response{Err: "Volume already exists."}
 	}
 
-	_, err := zfs.CreateDataset(dsName, make(map[string]string))
+	_, err := zfs.CreateDataset(dsName, req.Options)
 	if err != nil {
 		return volume.Response{Err: err.Error()}
 	}
