@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/TrilliumIT/docker-zfs-plugin/zfs"
@@ -35,15 +36,17 @@ func main() {
 }
 
 // Run runs the driver
-func Run(ctx *cli.Context) {
+func Run(ctx *cli.Context) error {
 	if ctx.String("dataset-name") == "" {
-		panic("ZFS Dataset name is a required field.")
+		return fmt.Errorf("ZFS Dataset name is a required field.")
 	}
 
 	d, err := zfsdriver.NewZfsDriver(ctx.String("dataset-name"))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	h := volume.NewHandler(d)
 	h.ServeUnix("root", "zfs")
+
+	return nil
 }
