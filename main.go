@@ -46,7 +46,7 @@ func Run(ctx *cli.Context) error {
 		return err
 	}
 	h := volume.NewHandler(d)
-	h.ServeUnix("root", "zfs")
+	h.ServeUnix("zfs", 0)
 
 	return nil
 }
