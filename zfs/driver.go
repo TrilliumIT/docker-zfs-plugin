@@ -10,36 +10,68 @@ import (
 
 type ZfsDriver struct {
 	volume.Driver
-	rds *zfs.Dataset //root dataset
+	rds         []*zfs.Dataset //root dataset
+	legacyNames bool
 }
 
-func NewZfsDriver(ds string) (*ZfsDriver, error) {
+func NewZfsDriver(dss ...string) (*ZfsDriver, error) {
 	log.SetLevel(log.DebugLevel)
 	log.Debug("Creating new ZfsDriver.")
 
-	if !zfs.DatasetExists(ds) {
-		rds, err := zfs.CreateDataset(ds, make(map[string]string))
+	zd := &ZfsDriver{}
+	if len(dss) < 1 {
+		return nil, fmt.Errorf("No datasets specified")
+	}
+	for _, ds := range dss {
+		if !zfs.DatasetExists(ds) {
+			_, err := zfs.CreateDataset(ds, make(map[string]string))
+			if err != nil {
+				log.Error("Failed to create root dataset.")
+				return nil, err
+			}
+		}
+		rds, err := zfs.GetDataset(ds)
 		if err != nil {
-			log.Error("Failed to create root dataset.")
+			log.Error("Failed to get root dataset.")
 			return nil, err
 		}
-		return &ZfsDriver{rds: rds}, nil
+		zd.rds = append(zd.rds, rds)
 	}
 
-	rds, err := zfs.GetDataset(ds)
-	return &ZfsDriver{rds: rds}, err
+	return zd, nil
+}
+
+func (zd *ZfsDriver) EnableLegacyNames() {
+	zd.legacyNames = true
+}
+
+func (zd *ZfsDriver) dsName(name string) (string, error) {
+	for _, ds := range zd.rds {
+		if strings.HasPrefix(name, ds.Name+"/") && !strings.Contains(strings.TrimPrefix(name, ds.Name+"/"), "/") {
+			return name, nil
+		}
+	}
+
+	if zd.legacyNames && !strings.Contains(name, "/") {
+		return zd.rds[0].Name + "/" + name, nil
+	}
+
+	return "", fmt.Errorf("Invalid dataset name: %v", name)
 }
 
 func (zd *ZfsDriver) Create(req *volume.CreateRequest) error {
 	log.WithField("Request", req).Debug("Create")
 
-	dsName := zd.rds.Name + "/" + req.Name
+	dsName, err := zd.dsName(req.Name)
+	if err != nil {
+		return err
+	}
 
 	if zfs.DatasetExists(dsName) {
 		return fmt.Errorf("Volume already exists.")
 	}
 
-	_, err := zfs.CreateDataset(dsName, req.Options)
+	_, err = zfs.CreateDataset(dsName, req.Options)
 	return err
 }
 
@@ -47,19 +79,21 @@ func (zd *ZfsDriver) List() (*volume.ListResponse, error) {
 	log.Debug("List")
 	var vols []*volume.Volume
 
-	dsl, err := zd.rds.DatasetList()
-	if err != nil {
-		return nil, err
-	}
-
-	errStr := ""
-	for _, ds := range dsl {
-		mp, err := ds.GetMountpoint()
+	for i, rds := range zd.rds {
+		dsl, err := rds.DatasetList()
 		if err != nil {
-			errStr += "Failed to get mountpoint of dsl: " + ds.Name + " Error: " + err.Error() + "\n"
+			return nil, err
 		}
-
-		vols = append(vols, &volume.Volume{Name: volNameFromDsName(ds.Name), Mountpoint: mp})
+		for _, ds := range dsl {
+			mp, err := ds.GetMountpoint()
+			if err != nil {
+				return nil, err
+			}
+			vols = append(vols, &volume.Volume{Name: ds.Name, Mountpoint: mp})
+			if i == 0 && zd.legacyNames {
+				vols = append(vols, &volume.Volume{Name: strings.TrimPrefix(ds.Name, rds.Name+"/"), Mountpoint: mp})
+			}
+		}
 	}
 
 	return &volume.ListResponse{Volumes: vols}, nil
@@ -75,7 +109,10 @@ func (zd *ZfsDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 }
 
 func (zd *ZfsDriver) getMP(name string) (string, error) {
-	dsName := zd.rds.Name + "/" + name
+	dsName, err := zd.dsName(name)
+	if err != nil {
+		return "", err
+	}
 
 	ds, err := zfs.GetDataset(dsName)
 	if err != nil {
@@ -87,7 +124,10 @@ func (zd *ZfsDriver) getMP(name string) (string, error) {
 
 func (zd *ZfsDriver) Remove(req *volume.RemoveRequest) error {
 	log.WithField("Request", req).Debug("Remove")
-	dsName := zd.rds.Name + "/" + req.Name
+	dsName, err := zd.dsName(req.Name)
+	if err != nil {
+		return err
+	}
 
 	ds, err := zfs.GetDataset(dsName)
 	if err != nil {
@@ -125,10 +165,4 @@ func (zd *ZfsDriver) Unmount(req *volume.UnmountRequest) error {
 func (zd *ZfsDriver) Capabilities() *volume.CapabilitiesResponse {
 	log.Debug("Capabilites")
 	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: "local"}}
-}
-
-func volNameFromDsName(dsName string) string {
-	volArr := strings.Split(dsName, "/")
-
-	return volArr[len(volArr)-1]
 }
