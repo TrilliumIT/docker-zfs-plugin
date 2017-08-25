@@ -1,11 +1,11 @@
 package zfsdriver
 
 import (
-	"strings"
-
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/clinta/go-zfs"
 	"github.com/docker/go-plugins-helpers/volume"
+	"strings"
 )
 
 type ZfsDriver struct {
@@ -30,30 +30,26 @@ func NewZfsDriver(ds string) (*ZfsDriver, error) {
 	return &ZfsDriver{rds: rds}, err
 }
 
-func (zd *ZfsDriver) Create(req volume.Request) volume.Response {
+func (zd *ZfsDriver) Create(req *volume.CreateRequest) error {
 	log.WithField("Request", req).Debug("Create")
 
 	dsName := zd.rds.Name + "/" + req.Name
 
 	if zfs.DatasetExists(dsName) {
-		return volume.Response{Err: "Volume already exists."}
+		return fmt.Errorf("Volume already exists.")
 	}
 
 	_, err := zfs.CreateDataset(dsName, req.Options)
-	if err != nil {
-		return volume.Response{Err: err.Error()}
-	}
-
-	return volume.Response{Err: ""}
+	return err
 }
 
-func (zd *ZfsDriver) List(req volume.Request) volume.Response {
-	log.WithField("Requst", req).Debug("List")
+func (zd *ZfsDriver) List() (*volume.ListResponse, error) {
+	log.Debug("List")
 	var vols []*volume.Volume
 
 	dsl, err := zd.rds.DatasetList()
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 
 	errStr := ""
@@ -66,68 +62,69 @@ func (zd *ZfsDriver) List(req volume.Request) volume.Response {
 		vols = append(vols, &volume.Volume{Name: volNameFromDsName(ds.Name), Mountpoint: mp})
 	}
 
-	return volume.Response{Volumes: vols, Err: errStr}
+	return &volume.ListResponse{Volumes: vols}, nil
 }
 
-func (zd *ZfsDriver) Get(req volume.Request) volume.Response {
-	log.WithField("Request", req).Debug("Get")
-	dsName := zd.rds.Name + "/" + req.Name
+func (zd *ZfsDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
+	mp, err := zd.getMP(req.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &volume.GetResponse{Volume: &volume.Volume{Name: req.Name, Mountpoint: mp}}, nil
+}
+
+func (zd *ZfsDriver) getMP(name string) (string, error) {
+	dsName := zd.rds.Name + "/" + name
 
 	ds, err := zfs.GetDataset(dsName)
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return "", err
 	}
 
-	mp, err := ds.GetMountpoint()
-	if err != nil {
-		return volume.Response{Err: err.Error()}
-	}
-
-	return volume.Response{Volume: &volume.Volume{Name: volNameFromDsName(ds.Name), Mountpoint: mp}, Err: ""}
+	return ds.GetMountpoint()
 }
 
-func (zd *ZfsDriver) Remove(req volume.Request) volume.Response {
+func (zd *ZfsDriver) Remove(req *volume.RemoveRequest) error {
 	log.WithField("Request", req).Debug("Remove")
 	dsName := zd.rds.Name + "/" + req.Name
 
 	ds, err := zfs.GetDataset(dsName)
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return err
 	}
 
-	err = ds.Destroy()
-	if err != nil {
-		return volume.Response{Err: err.Error()}
-	}
-
-	return volume.Response{Err: ""}
+	return ds.Destroy()
 }
 
-func (zd *ZfsDriver) Path(req volume.Request) volume.Response {
+func (zd *ZfsDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
 	log.WithField("Request", req).Debug("Path")
-	res := zd.Get(req)
-
-	if res.Err != "" {
-		return res
+	mp, err := zd.getMP(req.Name)
+	if err != nil {
+		return nil, err
 	}
 
-	return volume.Response{Mountpoint: res.Volume.Mountpoint, Err: ""}
+	return &volume.PathResponse{Mountpoint: mp}, nil
 }
 
-func (zd *ZfsDriver) Mount(req volume.MountRequest) volume.Response {
+func (zd *ZfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
 	log.WithField("Request", req).Debug("Mount")
+	mp, err := zd.getMP(req.Name)
+	if err != nil {
+		return nil, err
+	}
 
-	return zd.Path(volume.Request{Name: req.Name})
+	return &volume.MountResponse{Mountpoint: mp}, nil
 }
 
-func (zd *ZfsDriver) Unmount(req volume.UnmountRequest) volume.Response {
+func (zd *ZfsDriver) Unmount(req *volume.UnmountRequest) error {
 	log.WithField("Request", req).Debug("Unmount")
-	return volume.Response{Err: ""}
+	return nil
 }
 
-func (zd *ZfsDriver) Capabilities(req volume.Request) volume.Response {
-	log.WithField("Request", req).Debug("Capabilites")
-	return volume.Response{Capabilities: volume.Capability{Scope: "local"}}
+func (zd *ZfsDriver) Capabilities() *volume.CapabilitiesResponse {
+	log.Debug("Capabilites")
+	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: "local"}}
 }
 
 func volNameFromDsName(dsName string) string {
