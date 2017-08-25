@@ -15,18 +15,19 @@ const (
 
 func main() {
 
-	var flagDataset = cli.StringFlag{
-		Name:  "dataset-name",
-		Value: "",
-		Usage: "Name of the ZFS dataset to be used. It will be created if it doesn't exist.",
-	}
-
 	app := cli.NewApp()
 	app.Name = "docker-zfs-plugin"
 	app.Usage = "Docker ZFS Plugin"
 	app.Version = version
 	app.Flags = []cli.Flag{
-		flagDataset,
+		cli.StringSliceFlag{
+			Name:  "dataset-name",
+			Usage: "Name of the ZFS dataset to be used. It will be created if it doesn't exist.",
+		},
+		cli.BoolFlag{
+			Name:  "enable-legacy-names",
+			Usage: "Enable legacy (unqualified) names for the first specified dataset",
+		},
 	}
 	app.Action = Run
 	err := app.Run(os.Args)
@@ -41,7 +42,10 @@ func Run(ctx *cli.Context) error {
 		return fmt.Errorf("ZFS Dataset name is a required field.")
 	}
 
-	d, err := zfsdriver.NewZfsDriver(ctx.String("dataset-name"))
+	d, err := zfsdriver.NewZfsDriver(ctx.StringSlice("dataset-name")...)
+	if ctx.Bool("enable-legacy-names") {
+		d.EnableLegacyNames()
+	}
 	if err != nil {
 		return err
 	}
