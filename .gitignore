@@ -1,2 +1,2 @@
-/vendor
-/docker-zfs-plugin
+vendor
+bin/docker-zfs-plugin

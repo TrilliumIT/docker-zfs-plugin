@@ -35,7 +35,7 @@ func main() {
 // Run runs the driver
 func Run(ctx *cli.Context) error {
 	if ctx.String("dataset-name") == "" {
-		return fmt.Errorf("ZFS Dataset name is a required field.")
+		return fmt.Errorf("zfs dataset name is a required field")
 	}
 
 	d, err := zfsdriver.NewZfsDriver(ctx.StringSlice("dataset-name")...)
@@ -43,7 +43,6 @@ func Run(ctx *cli.Context) error {
 		return err
 	}
 	h := volume.NewHandler(d)
-	h.ServeUnix("zfs", 0)
 
-	return nil
+	return h.ServeUnix("zfs", 0)
 }
