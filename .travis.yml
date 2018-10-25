@@ -1,34 +1,28 @@
 language: go
-
 go:
 - 1.11.1
-
 env:
   global:
   - GO15VENDOREXPERIMENT=1
   - GOOS=linux
-
 before_install:
 - go get -u github.com/golang/dep/cmd/dep
-
 install:
 - "$GOPATH/bin/dep ensure"
 - go build .
-
 script:
-  - md5sum docker-zfs-plugin > md5.txt
-  - sha256sum docker-zfs-plugin > sha256.txt
-  - sha512sum docker-zfs-plugin > sha512.txt
-
+- md5sum docker-zfs-plugin > md5.txt
+- sha256sum docker-zfs-plugin > sha256.txt
+- sha512sum docker-zfs-plugin > sha512.txt
 deploy:
-  - provider: releases
-    skip_cleanup: true
-    api_key:
-      secure: MXvwv1l5HcqVCvJaPH0NIpYCR+5noi48kk9Cde1pfUXz7j3XNpy0B1Xu0KS/G398hlbpNiwZFc1QQJh/3g9nyV+jZowzWACZPN2Xobh3kgld6wCvvE+McQ5xhiY1PXk/jRbfA8hXjzD/cj8jKzGb4j6T3Ol4jfExWds+EkO5PQFB5ewCrskUoQPNVgrsB6rulT5KGIDZeEuSPgsc+TzEt3YnnNhyEocKuN++jw2byNPKZT+5Z9xfieOryTBUzbDF7yR9j+wFznh6I5Od5q3PimFkxYWVVMdARfmlEOJKgIwX85WYSJDmPNYy73IoGynaXrnKGAkgZees0sPhuHecyfw5MbwSsARdJeDfuWyczdhUT2XjvaDf/ZY/+4krz6yW17pW2Hg7Zj47NvIxuR85aaO6SRpHyb0XOY1AkgTmfA+kDUI52iCi5xqdmqioc9B4HUzBDBAKDatXZO3B2wwGpoRpkFrTbFiXrQYha2bGwcvktTSj6Q/ZrUZzH9ms3R0lBnUm63t9vXPcCdpJ9kAYHUTFIOF6Hq8lFRu0yYOmRjtJBhm98JYVW5aI5vDaQJIhxhgESQHeUXp2TCs16vvKzwRRFbrSjcHPv6IZQICZJTzTQWg5vdqImHxTkRYYItDkshEHwoQM0/tB18am8EtCI4xziDqaC5doA1BHIR7o+eY=
-    file:
-      - docker-zfs-plugin
-      - md5.txt
-      - sha256.txt
-      - sha512.txt
-    on:
-      tags: true
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: fXhSy2ISSP4oSaMxnhGWS+bmGsZyG1lJEUX9owWv/SPQBzNWfAQg0/TCEy65xXe1D4CXkSJbrvIhYIx/Tz/YMEplObGXXgRB+4UysdVRlyjAhwXaW3bm20nuTzK6f32rAX1mSSeNIclYpJGeLq6yXcAJa5vMPA9YfBqyXtbzYXpOIans+11atbtmDTWF4/vKbZ0Ix1JCSZacAizVq9j1U/tCI85OrxZI/3YY+leYEP4Ar/4LiBVC3fBxBfeyFz3niqPyre+U1/MY773mtk1Ceoy77IywJ/GBpcezDEIR17uPv17GW+5BO6DDv8f7j/oOUIIQv1k+yCUQTDk0jdK37odsOlmuO4+aBAu40mgTlMDzMT+ea1wPD1GjTw5WAhpj+YoCgATsBK69rgRXQ2jEC6oiGGP1UDHTGpjzJ08wr/vCqeeyGDYEPKYV5r1DBwNbOAkkVgoloz8SGgjuhIKBfmy+CFmQGqrCWMOypCP2rRF246meOWhHaiOQBj+MoQ3FRfgk8sH7Z+/Z9z/u0b/tmQQIvhHp6zt1UaTxmhmXXbcUbcpdRfc00OC4d8/jVhRiUlxcejDw2WfjWQ81kQiNfyuj8mQKqJkIOPRzBtRWPZcKfsQeMCnCSL5ukW8k6XtzaylH6EyDyDJ6XSrYsJINWVI19q8MYhx6WAnyybuqtbk=
+  file:
+  - docker-zfs-plugin
+  - md5.txt
+  - sha256.txt
+  - sha512.txt
+  on:
+    tags: true
