@@ -19,11 +19,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b33e7177ca6ec01e5e1956383649323fcae34489893f4b4c6db320a901627e12"
+  digest = "1:0d29590389bb281413ef5db82db06da1ca5af4ecd8f07990e042ac3933a64e81"
   name = "github.com/clinta/go-zfs"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c9685840e7c89a971e34dfb7f25aeeeb6db1ba60"
+  revision = "e5fe14d9dcb7ff5ffc94cef7c0ee854340cd9884"
 
 [[projects]]
   digest = "1:5155f7153c694dc8e2efd74d799a27fd54e65778fa3f0c3e17626df724857db9"
