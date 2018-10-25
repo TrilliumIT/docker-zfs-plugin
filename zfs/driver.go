@@ -100,6 +100,7 @@ func (zd *ZfsDriver) List() (*volume.ListResponse, error) {
 }
 
 func (zd *ZfsDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
+	log.WithField("Request", req).Debug("Get")
 	mp, err := zd.getMP(req.Name)
 	if err != nil {
 		return nil, err
