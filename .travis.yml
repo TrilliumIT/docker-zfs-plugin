@@ -1,7 +1,7 @@
 language: go
 
 go:
-- 1.7
+- 1.11.1
 
 env:
   global:
@@ -9,14 +9,13 @@ env:
   - GOOS=linux
 
 before_install:
-- go get github.com/Masterminds/glide
+- go get -u github.com/golang/dep/cmd/dep
 
 install:
-- "$GOPATH/bin/glide install"
-- go get -t $($GOPATH/bin/glide novendor)
+- "$GOPATH/bin/dep ensure"
+- go build .
 
 script:
-  - mv $GOPATH/bin/docker-zfs-plugin ./
   - md5sum docker-zfs-plugin > md5.txt
   - sha256sum docker-zfs-plugin > sha256.txt
   - sha512sum docker-zfs-plugin > sha512.txt
