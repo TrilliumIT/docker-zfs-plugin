@@ -24,10 +24,6 @@ func main() {
 			Name:  "dataset-name",
 			Usage: "Name of the ZFS dataset to be used. It will be created if it doesn't exist.",
 		},
-		cli.BoolFlag{
-			Name:  "enable-legacy-names",
-			Usage: "Enable legacy (unqualified) names for the first specified dataset",
-		},
 	}
 	app.Action = Run
 	err := app.Run(os.Args)
@@ -43,9 +39,6 @@ func Run(ctx *cli.Context) error {
 	}
 
 	d, err := zfsdriver.NewZfsDriver(ctx.StringSlice("dataset-name")...)
-	if ctx.Bool("enable-legacy-names") {
-		d.EnableLegacyNames()
-	}
 	if err != nil {
 		return err
 	}

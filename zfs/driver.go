@@ -2,7 +2,6 @@ package zfsdriver
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -12,8 +11,7 @@ import (
 
 type ZfsDriver struct {
 	volume.Driver
-	rds         []*zfs.Dataset //root dataset
-	legacyNames bool
+	rds []*zfs.Dataset //root dataset
 }
 
 func NewZfsDriver(dss ...string) (*ZfsDriver, error) {
@@ -43,37 +41,14 @@ func NewZfsDriver(dss ...string) (*ZfsDriver, error) {
 	return zd, nil
 }
 
-func (zd *ZfsDriver) EnableLegacyNames() {
-	zd.legacyNames = true
-}
-
-func (zd *ZfsDriver) dsName(name string) (string, error) {
-	for _, ds := range zd.rds {
-		if strings.HasPrefix(name, ds.Name+"/") && !strings.Contains(strings.TrimPrefix(name, ds.Name+"/"), "/") {
-			return name, nil
-		}
-	}
-
-	if zd.legacyNames && !strings.Contains(name, "/") {
-		return zd.rds[0].Name + "/" + name, nil
-	}
-
-	return "", fmt.Errorf("Invalid dataset name: %v", name)
-}
-
 func (zd *ZfsDriver) Create(req *volume.CreateRequest) error {
 	log.WithField("Request", req).Debug("Create")
 
-	dsName, err := zd.dsName(req.Name)
-	if err != nil {
-		return err
-	}
-
-	if zfs.DatasetExists(dsName) {
+	if zfs.DatasetExists(req.Name) {
 		return fmt.Errorf("Volume already exists.")
 	}
 
-	_, err = zfs.CreateDataset(dsName, req.Options)
+	_, err := zfs.CreateDataset(req.Name, req.Options)
 	return err
 }
 
@@ -81,7 +56,7 @@ func (zd *ZfsDriver) List() (*volume.ListResponse, error) {
 	log.Debug("List")
 	var vols []*volume.Volume
 
-	for i, rds := range zd.rds {
+	for _, rds := range zd.rds {
 		dsl, err := rds.DatasetList()
 		if err != nil {
 			return nil, err
@@ -95,9 +70,6 @@ func (zd *ZfsDriver) List() (*volume.ListResponse, error) {
 				continue
 			}
 			vols = append(vols, &volume.Volume{Name: ds.Name, Mountpoint: mp})
-			if i == 0 && zd.legacyNames {
-				vols = append(vols, &volume.Volume{Name: strings.TrimPrefix(ds.Name, rds.Name+"/"), Mountpoint: mp})
-			}
 		}
 	}
 
@@ -116,12 +88,7 @@ func (zd *ZfsDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 }
 
 func (zd *ZfsDriver) getVolume(name string) (*volume.Volume, error) {
-	dsName, err := zd.dsName(name)
-	if err != nil {
-		return nil, err
-	}
-
-	ds, err := zfs.GetDataset(dsName)
+	ds, err := zfs.GetDataset(name)
 	if err != nil {
 		return nil, err
 	}
@@ -141,12 +108,7 @@ func (zd *ZfsDriver) getVolume(name string) (*volume.Volume, error) {
 }
 
 func (zd *ZfsDriver) getMP(name string) (string, error) {
-	dsName, err := zd.dsName(name)
-	if err != nil {
-		return "", err
-	}
-
-	ds, err := zfs.GetDataset(dsName)
+	ds, err := zfs.GetDataset(name)
 	if err != nil {
 		return "", err
 	}
@@ -156,12 +118,8 @@ func (zd *ZfsDriver) getMP(name string) (string, error) {
 
 func (zd *ZfsDriver) Remove(req *volume.RemoveRequest) error {
 	log.WithField("Request", req).Debug("Remove")
-	dsName, err := zd.dsName(req.Name)
-	if err != nil {
-		return err
-	}
 
-	ds, err := zfs.GetDataset(dsName)
+	ds, err := zfs.GetDataset(req.Name)
 	if err != nil {
 		return err
 	}
