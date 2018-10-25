@@ -17,3 +17,7 @@ After the plugin is running, you can interact with it through normal `docker vol
 Recently, support was added for passing in ZFS attributes from the `docker volume create` command:
 
 `docker volume create -d zfs -o compression=lz4 -o dedup=on --name=data`
+
+* Legacy
+
+The driver was refactored to allow multiple pools and fully qualified dataset names. The master branch has removed all legacy naming options and now fully qualified dataset names are required. If you still have not converted to fully qualified names, please use the latest release in the v0.4.x line until you can switch to non-legacy volume names.
