@@ -26,7 +26,7 @@ func NewZfsDriver(dss ...string) (*ZfsDriver, error) {
 	}
 	for _, ds := range dss {
 		if !zfs.DatasetExists(ds) {
-			_, err := zfs.CreateDataset(ds, make(map[string]string))
+			_, err := zfs.CreateDatasetRecursive(ds, make(map[string]string))
 			if err != nil {
 				log.Error("Failed to create root dataset.")
 				return nil, err
@@ -51,7 +51,7 @@ func (zd *ZfsDriver) Create(req *volume.CreateRequest) error {
 		return fmt.Errorf("volume already exists")
 	}
 
-	_, err := zfs.CreateDataset(req.Name, req.Options)
+	_, err := zfs.CreateDatasetRecursive(req.Name, req.Options)
 	return err
 }
 
