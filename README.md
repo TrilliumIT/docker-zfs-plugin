@@ -16,7 +16,7 @@ After the plugin is running, you can interact with it through normal `docker vol
 
 Recently, support was added for passing in ZFS attributes from the `docker volume create` command:
 
-`docker volume create -d zfs -o compression=lz4 -o dedup=on --name=data`
+`docker volume create -d zfs -o compression=lz4 -o dedup=on --name=tank/docker-volumes/data`
 
 * Legacy
 
