@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/TrilliumIT/docker-zfs-plugin/zfs"
+	zfsdriver "github.com/TrilliumIT/docker-zfs-plugin/zfs"
+	"github.com/coreos/go-systemd/activation"
 	"github.com/docker/go-plugins-helpers/volume"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
@@ -44,5 +46,17 @@ func Run(ctx *cli.Context) error {
 	}
 	h := volume.NewHandler(d)
 
-	return h.ServeUnix("zfs", 0)
+	listeners, _ := activation.Listeners() // wtf coreos, this funciton never returns errors
+	if len(listeners) == 0 {
+		log.Debug("launching volume handler.")
+		return h.ServeUnix("zfs", 0)
+	}
+
+	if len(listeners) > 1 {
+		log.Warn("driver does not support multiple sockets")
+	}
+
+	l := listeners[0]
+	log.WithField("listener", l.Addr().String()).Debug("launching volume handler")
+	return h.Serve(l)
 }
