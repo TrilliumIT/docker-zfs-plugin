@@ -17,9 +17,7 @@ type ZfsDriver struct {
 
 //NewZfsDriver returns the plugin driver object
 func NewZfsDriver(dss ...string) (*ZfsDriver, error) {
-	log.SetLevel(log.DebugLevel)
 	log.Debug("Creating new ZfsDriver.")
-
 	zd := &ZfsDriver{}
 	if len(dss) < 1 {
 		return nil, fmt.Errorf("No datasets specified")

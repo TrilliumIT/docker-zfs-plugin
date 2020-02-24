@@ -18,12 +18,13 @@ import (
 )
 
 const (
-	version         = "0.1.4"
+	version         = "1.0.5"
 	shutdownTimeout = 10 * time.Second
 )
 
 func main() {
 
+	verbose := false
 	app := cli.NewApp()
 	app.Name = "docker-zfs-plugin"
 	app.Usage = "Docker ZFS Plugin"
@@ -33,8 +34,19 @@ func main() {
 			Name:  "dataset-name",
 			Usage: "Name of the ZFS dataset to be used. It will be created if it doesn't exist.",
 		},
+		cli.BoolFlag{
+			Name:        "verbose",
+			Usage:       "verbose output",
+			Destination: &verbose,
+		},
 	}
 	app.Action = Run
+	app.Before = func(c *cli.Context) error {
+		if verbose {
+			log.SetLevel(log.DebugLevel)
+		}
+		return nil
+	}
 	err := app.Run(os.Args)
 	if err != nil {
 		panic(err)
