@@ -10,7 +10,7 @@ require (
 	github.com/docker/go-plugins-helpers v0.0.0-20200102110956-c9a8a2d92ccc
 	github.com/sirupsen/logrus v1.4.2
 	github.com/urfave/cli v1.22.2
-	golang.org/x/net v0.0.0-20200219183655-46282727080f // indirect
+	golang.org/x/net v0.7.0 // indirect
 )
 
 replace github.com/docker/go-plugins-helpers => github.com/clinta/go-plugins-helpers v0.0.0-20200221140445-4667bb9f0ed5 // for shutdown
